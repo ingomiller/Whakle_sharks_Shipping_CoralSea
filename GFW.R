@@ -227,7 +227,64 @@ my_raster_all_df %>%
   ) +
   map_theme
 
+## AMSA DATA ------------------------------------------------
 
+# downloaded Jan 2021 data from AMSA
 
+AMSA_Shipping_shp <- st_read("C:/Users/sarab/OneDrive - James Cook University/Internship/Ingo/Whakle_sharks_Shipping_CoralSea/cts_srr_01_2021_pt/cts_srr_01_2021_pt.shp")
 
+AMSA_df <- as.data.frame(AMSA_Shipping_shp)
 
+# Grid
+
+AMSA_df$lon_bin <- cut(AMSA_df$LON, breaks = seq(min(AMSA_df$LON), max(AMSA_df$LON), by = 0.1))
+AMSA_df$lat_bin <- cut(AMSA_df$LAT, breaks = seq(min(AMSA_df$LAT), max(AMSA_df$LAT), by = 0.1))
+
+# Count
+
+count <-AMSA_df %>%
+group_by(lon_bin, lat_bin) %>%
+summarise(count = n())
+
+# convert to numeric and back to lat/lon
+
+count$lon_bin <- as.numeric(count$lon_bin) * 0.1 + min(AMSA_df$LON)
+count$lat_bin <- as.numeric(count$lat_bin) * 0.1 + min(AMSA_df$LAT)
+
+# Maps
+# Full World
+
+ggplot(data = count) +
+geom_raster(aes(x = lon_bin,
+                y = lat_bin,
+                fill = count)) +
+geom_sf(data = ne_countries(returnclass = "sf", scale = "medium")) +
+coord_sf(xlim = range(count$lon_bin),ylim = range(count$lat_bin)) +
+scale_fill_gradientn(
+  trans = 'log10',
+  colors = map_effort_light, 
+  na.value = NA,
+  labels = scales::comma) +
+labs(title = "Fishing Traffic Density in the Australian EEZ",
+     subtitle = glue::glue("{start_date} to {end_date}"),
+     fill = "Count") +
+map_theme
+
+# Specific Region
+AUS_region <- c(xmin=135, xmax = 160, ymin = -30, ymax = -5)
+ggplot(data = count) +
+  geom_raster(aes(x = lon_bin,
+                  y = lat_bin,
+                  fill = count)) +
+  geom_sf(data = ne_countries(returnclass = "sf", scale = "medium")) +
+  coord_sf(xlim = c(AUS_region["xmin"], AUS_region["xmax"]),
+           ylim = c(AUS_region["ymin"], AUS_region["ymax"])) +
+  scale_fill_gradientn(
+    trans = 'log10',
+    colors = map_effort_light, 
+    na.value = NA,
+    labels = scales::comma) +
+  labs(title = "Shipping Traffic Density in the Australian EEZ",
+       subtitle = glue::glue("{start_date} to {end_date}"),
+       fill = "Count") +
+  map_theme
