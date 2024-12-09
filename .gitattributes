@@ -1,3 +1,1 @@
-cts_srr_01_2021_pt/cts_srr_01-2021.dbf filter=lfs diff=lfs merge=lfs -text
 *.dbf filter=lfs diff=lfs merge=lfs -text
-cts_srr_01_2021_pt/cts_srr_01_2021_pt.dbf filter=lfs diff=lfs merge=lfs -text
