@@ -48,12 +48,7 @@ get_event(event_type = 'ENCOUNTER',
 
 
 
-
-
-# Shiiping Traffic Maps ---------------------------------------------------
-
-
-
+# Shipping Traffic Maps ---------------------------------------------------
 
 
 # Map theme with dark background
@@ -71,19 +66,21 @@ map_theme <- ggplot2::theme_minimal() +
     axis.text = element_text(color = "#848b9b", size = 6)
   )
 
+panel.background = element_rect(fill="lightblue", color = NA), #makes water blue
+
 # Palette for fishing activity
 map_effort_light <- c("#ffffff", "#eeff00", "#3b9088","#0c276c")
+map_color <- c("#ffffff","#3b9088","#0c276c" )
 
-
+# Date
 start_date <- '2021-01-01'
-end_date <- '2021-03-31'
-
+end_date <- '2021-01-31'
 
 
 regions <- get_regions()
 
 
-# Use get_region_id function to get EEZ code for Italy
+# Use get_region_id function to get EEZ code for Australia
 AUS_EEZ_code <- get_region_id(region_name = "AUS", region_source = "EEZ", key = key)
 
 AUS_EEZ_code <- AUS_EEZ_code %>%  dplyr::filter(label == "Australia")
@@ -227,7 +224,110 @@ my_raster_all_df %>%
   ) +
   map_theme
 
+## AMSA DATA ------------------------------------------------
+
+# downloaded Jan 2021 data from AMSA
+
+AMSA_Shipping_shp <- st_read("C:/Users/sarab/OneDrive - James Cook University/Internship/Ingo/Whakle_sharks_Shipping_CoralSea/cts_srr_01_2021_pt/cts_srr_01_2021_pt.shp")
+
+AMSA_df <- as.data.frame(AMSA_Shipping_shp)
+
+# Grid
+AMSA_df$lon_bin <- cut(AMSA_df$LON, breaks = seq(min(AMSA_df$LON), max(AMSA_df$LON), by = 0.1))
+AMSA_df$lat_bin <- cut(AMSA_df$LAT, breaks = seq(min(AMSA_df$LAT), max(AMSA_df$LAT), by = 0.1))
+
+# Count
+count <-AMSA_df %>%
+group_by(lon_bin, lat_bin) %>%
+summarise(count = n())
 
 
+# convert to numeric and back to lat/lon
+
+count$lon_bin <- as.numeric(count$lon_bin) * 0.1 + min(AMSA_df$LON)
+count$lat_bin <- as.numeric(count$lat_bin) * 0.1 + min(AMSA_df$LAT)
+
+# Maps
+# Full World
+
+ggplot(data = count) +
+geom_raster(aes(x = lon_bin,
+                y = lat_bin,
+                fill = count)) +
+geom_sf(data = ne_countries(returnclass = "sf", scale = "medium")) +
+coord_sf(xlim = range(count$lon_bin),ylim = range(count$lat_bin)) +
+scale_fill_gradientn(
+  trans = 'log10',
+  colors = map_effort_light, 
+  na.value = NA,
+  labels = scales::comma) +
+labs(title = "Fishing Traffic Density in the Australian EEZ",
+     subtitle = glue::glue("{start_date} to {end_date}"),
+     fill = "Count") +
+map_theme
+
+# Specific Region
+AUS_region <- c(xmin=135, xmax = 160, ymin = -30, ymax = -5)
+ggplot(data = count) +
+  geom_raster(aes(x = lon_bin,
+                  y = lat_bin,
+                  fill = count)) +
+  geom_sf(data = ne_countries(returnclass = "sf", scale = "medium")) +
+  coord_sf(xlim = c(AUS_region["xmin"], AUS_region["xmax"]),
+           ylim = c(AUS_region["ymin"], AUS_region["ymax"])) +
+  scale_fill_gradientn(
+    trans = 'log10',
+    colors = map_effort_light, 
+    na.value = NA,
+    labels = scales::comma,
+    limits = c(1, 474)) +
+  labs(title = "Shipping Traffic Density in the Australian EEZ",
+       subtitle = glue::glue("{start_date} to {end_date}"),
+       fill = "Count") +
+  map_theme
 
 
+## GFW Data Mapping -----------------------------------------
+
+# Grid
+AUS_eez_fish_df$lon_bin <- cut(AUS_eez_fish_df$Lon, breaks = seq(min(AUS_eez_fish_df$Lon), max(AUS_eez_fish_df$Lon), by = 0.1))
+AUS_eez_fish_df$lat_bin <- cut(AUS_eez_fish_df$Lat, breaks = seq(min(AUS_eez_fish_df$Lat), max(AUS_eez_fish_df$Lat), by = 0.1))
+
+# Count
+GFW_count <-AUS_eez_fish_df %>%
+  group_by(lon_bin, lat_bin) %>%
+  summarise(count = n())
+
+
+# convert to numeric and back to lat/lon
+GFW_count <- GFW_count %>%
+  mutate(
+    lon = as.numeric(lon_bin) * 0.1 + min(AUS_eez_fish_df$Lon),
+    lat = as.numeric(lat_bin) * 0.1 + min(AUS_eez_fish_df$Lat)
+  )
+  
+
+# Maps
+# Specific Region
+AUS_region <- c(xmin=135, xmax = 160, ymin = -30, ymax = -5)
+ggplot(data = GFW_count) +
+  geom_raster(aes(x = lon,
+                  y = lat,
+                  fill = count)) +
+  geom_sf(data = ne_countries(returnclass = "sf", scale = "medium")) +
+  coord_sf(xlim = c(AUS_region["xmin"], AUS_region["xmax"]),
+           ylim = c(AUS_region["ymin"], AUS_region["ymax"])) +
+  scale_fill_gradientn( 
+    trans = 'log10', 
+    colors = map_effort_light, 
+    na.value = NA, limits = c(1, 169),
+    breaks = c(1, 169),
+    labels = c("Low", "High"))+ 
+    labs(title = "GFW Shipping Traffic Density in the Australian EEZ", 
+         subtitle = glue::glue("{start_date} to {end_date}"), 
+         fill = "Shipping Density (Count)") + 
+  map_theme
+    
+    
+
+    
