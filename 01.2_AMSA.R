@@ -757,7 +757,7 @@ monthly_transits |>
   dplyr::mutate(month = factor(month)) |>
   rstatix::pairwise_wilcox_test(
     formula = unique_vessels ~ month,
-    p.adjust.method = "BH"  # Benjamini-Hochberg correction
+    p.adjust.method = "BH"  
   ) |> 
   print(n=100)
 
@@ -773,7 +773,7 @@ monthly_transits |>
   dplyr::mutate(month = factor(month)) |>
   rstatix::pairwise_wilcox_test(
     formula = unique_vessels ~ month,
-    p.adjust.method = "BH"  # Benjamini-Hochberg correction
+    p.adjust.method = "BH" 
   )
 
 

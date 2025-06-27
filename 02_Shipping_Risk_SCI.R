@@ -158,6 +158,8 @@ GBR_features <- sf::st_read("/Users/ingo/Library/CloudStorage/OneDrive-JamesCook
 GBR_features
 
 
+SRR_zone <- sf::st_read("/Volumes/Ingo_PhD/PhD_Data_Analysis/Shipping/AMSA_AUSTRALIAN_SRR/amsa_aust_srr_pl.shp") |> 
+  sf::st_transform(4326)
 
 
 library(terra)
@@ -250,6 +252,8 @@ P1 <- ggplot2::ggplot() +
   tidyterra::geom_spatraster(data = sci_high, na.rm = TRUE) +
   
   geom_sf(data = AUS_PNG$geometry, fill = "grey50", color = "grey50", linewidth = 0.2) +
+  
+  geom_sf(data = SRR_zone$geometry, fill = NA, color = "dodgerblue", linewidth = 0.2) +
   
   geom_sf(data = cities,
           shape = 21,
@@ -424,6 +428,8 @@ P2 <- ggplot2::ggplot() +
   # geom_sf(data = GBR_zone_shifted, fill = NA, color = "green", alpha = 1, linewidth = 0.5, linetype = "dashed") +
   geom_sf(data = AUS_PNG$geometry, fill = "grey40", color = "black", linewidth = 0.5) +
   
+  geom_sf(data = SRR_zone$geometry, fill = NA, color = "green", linewidth = 0.5) +
+  
   geom_sf(data = WB_95,
           aes(linetype = factor("Home Range", levels = c("Home Range", "95% CI"))),
           fill = NA, color = "blue1", alpha = 0.5, linewidth = 0.5, show.legend = TRUE) +
@@ -539,7 +545,7 @@ P2 <- ggplot2::ggplot() +
   # annotate("text", x = 154, y = -8.5, label = "Solomon\nSea", color = "white", size = 3, fontface = "italic")+
   # annotate("text", x = 139, y = -14, label = "Gulf of\nCarpentaria", color = "white", size = 3, fontface = "italic")+
   # annotate("text", x = 145, y = -9, label = "Gulf of\nPapua", color = "white", size = 3, fontface = "italic")+
-  # annotate("text", x = 142.5, y = -10, label = "Torres Str.", color = "white", size = 2, fontface = "italic")+ 
+  annotate("text", x = 142.8, y = -10.4, label = "Torres Str.", color = "black", size = 4, fontface = "italic")+ 
   
   
   theme(
@@ -573,6 +579,8 @@ P3 <- ggplot2::ggplot() +
   
   geom_sf(data = AUS_PNG$geometry, fill = "grey20", color = "grey20", linewidth = 0.5) +
   
+  geom_sf(data = SRR_zone$geometry, fill = NA, color = "green2", linewidth = 0.5) +
+  
   geom_sf(data = cities,
           shape = 21,
           colour = "black", 
@@ -598,7 +606,7 @@ P3 <- ggplot2::ggplot() +
                                 colour = "white",
                                 aes(label = Loc),
                                 nudge_x = 1.5,
-                                nudge_y = 0.4,
+                                nudge_y = 0.65,
                                 size = 2.5,
                                 #fontface = "bold",
                                 force = 1,
