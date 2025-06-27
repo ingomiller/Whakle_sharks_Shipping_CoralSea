@@ -12,10 +12,12 @@ library(grid)
 library(patchwork)
 
 
+
+# Import Data  ------------------------------------------------------------
+
+
+
 ships <- terra::rast( "Shipping_MeanVessels_AUS_2018-2025.tif")
-
-
-
 mean_SDM <- terra::rast("/Volumes/Ingo_PhD/PhD_Data_Analysis/PhD_WhaleSharks_SDMs_Enviro_Layers/Chapter2/Processed_Raster_Files/SDM_Outputs_Final/WhaleSharks_SDM_Mean_Enssemble_Current.tif")
 seasons_SDM <- terra::rast( "/Volumes/Ingo_PhD/PhD_Data_Analysis/PhD_WhaleSharks_SDMs_Enviro_Layers/Chapter2/Processed_Raster_Files/SDM_Outputs_Final/WhaleSharks_SDM_Mean_Season_Enssemble_Current.tif")
 
@@ -28,6 +30,38 @@ terra::plot(ships)
 ships_crop <- terra::resample(ships, mean_SDM)
 ships_crop
 terra::plot(ships_crop)
+
+
+ships
+
+# Maps --------------------------------------------------------------------
+
+# QLD region
+AUS_region <- c(xmin=135, xmax = 160, ymin = -30, ymax = -5)
+ggplot(data = ships) +
+  geom_raster(aes(x = lon,
+                  y = lat,
+                  fill = mean_unique_vessels)) +
+  geom_sf(data = ne_countries(returnclass = "sf", scale = 10), color = "grey20", fill = "grey20") +
+  coord_sf(xlim = c(AUS_region["xmin"], AUS_region["xmax"]),
+           ylim = c(AUS_region["ymin"], AUS_region["ymax"])) +
+  scale_fill_gradientn(
+    trans = 'log10',
+    #colors = map_effort_dark,
+    colors = cmocean::cmocean("thermal")(300),
+    na.value = NA,
+    labels = scales::comma,
+    limits = c(1, max(ships$mean_unique_vessels))) +
+  #limits = c(min(mean_density$mean_unique_vessels), max(mean_density$mean_unique_vessels))) +
+  
+  labs(title = "Mean Shipping Traffic Density in the Australian SAR Zone",
+       subtitle = glue::glue("{start} to {end}"),
+       fill = "Count") +
+  map_theme_dark
+
+
+
+
 
 # Set CZU (collision zone use value)
 czu_value <- 0.55 # as per Womersley et al. 2022 | I think this is not needed when using habitat suitability
@@ -164,7 +198,7 @@ WB <- data.frame(Loc = c( "Wreck\nBay"),
 world <- ne_countries(scale = 10, returnclass = "sf")
 
 AUS_PNG <- world |> filter(name == "Australia" | name == "Papua New Guinea" | name == "Indonesia")
-plot(AUS_PNG)
+plot(AUS_PNG$geometry)
 
 # Define the extent of the study area 
 ext <- c(xmin = 136, xmax = 160, ymin = -30, ymax = -5)
@@ -374,18 +408,21 @@ sf::st_crs(GBR_zone_shifted) <- 4326
 
 
 max_values <- terra::app(sci_high, fun = "max", na.rm = TRUE)
+max_values <- terra::app(sci_monsoon_raster, fun = "max", na.rm = TRUE)
 high <- global(max_values, fun = "max", na.rm = TRUE) |> as.numeric()
 min_values <- terra::app(sci_high, fun = "min", na.rm = TRUE)
 low <- global(min_values, fun = "min", na.rm = TRUE) |> as.numeric()
 high = 0.8
 
 
+sci_monsoon_raster
+
 
 P2 <- ggplot2::ggplot() +
   tidyterra::geom_spatraster(data = sci_monsoon_raster) +
   #tidyterra::geom_spatraster(data = sci_high, na.rm = TRUE) +
   # geom_sf(data = GBR_zone_shifted, fill = NA, color = "green", alpha = 1, linewidth = 0.5, linetype = "dashed") +
-  geom_sf(data = AUS_PNG$geometry, fill = "grey50", color = "black", linewidth = 0.5) +
+  geom_sf(data = AUS_PNG$geometry, fill = "grey40", color = "black", linewidth = 0.5) +
   
   geom_sf(data = WB_95,
           aes(linetype = factor("Home Range", levels = c("Home Range", "95% CI"))),
@@ -446,7 +483,7 @@ P2 <- ggplot2::ggplot() +
   
   scale_fill_gradientn(
     #colors = viridisLite::plasma(256),   # or use the manual one above
-    trans = 'log10',
+    #trans = 'log10',
     colors = cmocean::cmocean(name = "matter", start = 0.1, end = 0.9)(300),
     #colors = map_effort_dark,
     limits = c(0, high),
@@ -472,7 +509,9 @@ P2 <- ggplot2::ggplot() +
                               pad_y = unit(0.25, "cm"),
                               style = "ticks",
                               #plot_unit = "km",
-                              width_hint = 0.3
+                              width_hint = 0.3,
+                              line_col = "black",
+                              text_col = "black"
                               ) +
   
   ggspatial::annotation_north_arrow(location = "bl",
@@ -522,4 +561,151 @@ P2 <- ggplot2::ggplot() +
 P2
 
 ggsave("SCI_FN_GBR.png", plot = P2, path ="Output_Figs", scale =1, width = 10, height = 15, units = "cm", dpi = 300)
+
+
+
+# Map ship density  -------------------------------------------------------
+
+max = 300
+
+P3 <- ggplot2::ggplot() +
+  tidyterra::geom_spatraster(data = ships) +
+  
+  geom_sf(data = AUS_PNG$geometry, fill = "grey20", color = "grey20", linewidth = 0.5) +
+  
+  geom_sf(data = cities,
+          shape = 21,
+          colour = "black", 
+          fill = "red", 
+          alpha = 1, 
+          size = 2,
+          show.legend = FALSE) +
+  
+  coord_sf(xlim = c(136, 160), ylim = c(-30, -5), expand = FALSE) + 
+  
+  ggsflabel::geom_sf_text_repel(data = cities,
+                                colour = "white", 
+                                aes(label = Loc), 
+                                nudge_x = -0.75, 
+                                nudge_y = 0.25, 
+                                size = 3, 
+                                force = 1,
+                                force_pull = 10,
+                                seed = 10) +
+  
+  
+  ggsflabel::geom_sf_text_repel(data = WB,
+                                colour = "white",
+                                aes(label = Loc),
+                                nudge_x = 1.5,
+                                nudge_y = 0.4,
+                                size = 2.5,
+                                #fontface = "bold",
+                                force = 1,
+                                force_pull = 10,
+                                seed = 15) +
+  
+  scale_fill_gradientn(
+    #colors = viridisLite::plasma(256),   # or use the manual one above
+    colors = cmocean::cmocean(name = "thermal", start = 0, end = 1)(300),
+    trans = 'log10',
+    #colors = map_effort_dark,
+    labels = scales::comma,
+    #colors = map_effort_dark,
+    limits = c(1, max),
+    breaks = c(1, 10, 100),
+    # labels = c("Low", "High"),
+    na.value = NA,
+    guide = guide_colorbar(frame.colour = "black", ticks.colour = "black")
+  ) +
+  
+  labs(fill = "Vessel\nCount", x = "Longitude", y = "Latitude", title = "") +
+  
+  scale_y_continuous(limits = c(-30, -5), breaks = seq(-25, -10, by = 5), expand = c(0,0)) +
+  scale_x_continuous(limits = c(136, 160), breaks = seq(140, 155, by = 5),expand = c(0,0)) +
+  
+  ggspatial::annotation_scale(location = "bl",
+                              pad_x = unit(2, "cm"),
+                              pad_y = unit(0.25, "cm"),
+                              style = "ticks",
+                              #plot_unit = "km",
+                              width_hint = 0.3,
+                              line_col = "white",
+                              text_col = "white"
+  ) +
+  
+  ggspatial::annotation_north_arrow(location = "bl",
+                                    which_north = "true", 
+                                    height = unit(1, "cm"),
+                                    width = unit(1, "cm"),
+                                    pad_x = unit(0.5, "cm"),
+                                    pad_y = unit(0.25, "cm"),
+                                    style =  north_arrow_fancy_orienteering(text_col = "white")) +
+  
+  # Add manual text at specific coordinates
+  # annotate("text", x = 141, y = -26, label = "AUS", color = "white", size = 3, fontface = "bold") +
+  # annotate("text", x = 144, y = -6, label = "PNG", color = "white", size = 3, fontface = "bold") +
+  # annotate("text", x = 152, y = -15, label = "Coral Sea", color = "white", size = 3, fontface = "italic") +
+  # annotate("text", x = 154, y = -8.5, label = "Solomon\nSea", color = "white", size = 3, fontface = "italic")+
+  # annotate("text", x = 139, y = -14, label = "Gulf of\nCarpentaria", color = "white", size = 3, fontface = "italic")+
+  # annotate("text", x = 145, y = -9, label = "Gulf of\nPapua", color = "white", size = 3, fontface = "italic")+
+  # annotate("text", x = 142.5, y = -10, label = "Torres Str.", color = "white", size = 2, fontface = "italic")+ 
+  
+  
+  theme(
+    legend.position = "bottom",
+    legend.direction = "horizontal",
+    legend.key.width = rel(2),
+    legend.key.height = rel(0.75),
+    legend.title = element_text(size=8, face = "bold"),
+    legend.text = element_text(size = 8),
+    axis.text = element_text(size = 8),
+    #axis.title = element_text(size = 10),
+    axis.title = element_blank(),
+    panel.border = element_rect(fill = NA, colour = "black", linewidth = 1),
+    panel.background = element_rect(fill = "black", colour = NA),
+    panel.grid = element_blank(),
+    plot.margin = unit(c(0, 0, 0, 0), "cm")) 
+
+
+
+P3
+
+ggsave("Shipping_Desnity_Qld_map.png", plot = P3, path ="Output_Figs", scale =1, width = 15, height = 15, units = "cm", dpi = 300)
+
+
+
+
+
+library(leaflet)
+library(mapview)
+
+# Convert to RGB or use a color palette for single-layer rasters
+# Log-transform raster (adding 1 to avoid log(0) if needed)
+ships_log <- log10(ships)
+ships_masked <- terra::ifel(ships >= 1, ships, NA)
+
+# Create palette using log-transformed range
+pal <- leaflet::colorNumeric(
+  palette = cmocean::cmocean("thermal")(100),
+  domain = terra::values(ships_masked),
+  na.color = "transparent"
+)
+
+# leaflet() |>
+#   addProviderTiles("CartoDB.DarkMatter") |>
+#   addRasterImage(ships_log, colors = pal, opacity = 1, project = TRUE) |>
+#   addLegend(pal = pal,
+#             values = terra::values(ships_log),
+#             title = "Vessel Count",
+#             labFormat = leaflet::labelFormat(transform = function(x) round(10^x)))  # back-transform labels
+
+ships
+
+mapview::mapview(ships_masked, col.regions = cmocean::cmocean("thermal")(100), layer.name = "Vessel Count") +
+  mapview::mapview(cities, zcol = "Loc", col.regions = "red") +
+  mapview::mapview(WB, zcol = "Loc", col.regions = "red") +
+  mapview::mapview(AUS_PNG, col.regions = "grey20", alpha.regions = 1)
+
+
 
