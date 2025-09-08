@@ -236,7 +236,7 @@ grid_resolution <- 0.1
 
 
 start <- 'Jan 2018'
-end <- 'Mar 2025'
+end <- 'Jul 2025'
 
 # Function to process a single shapefile
 process_shapefile <- function(shp_path) {
@@ -382,7 +382,7 @@ terra::writeRaster(r, "Shipping_Density_AUS_2018-2025.tif", overwrite = TRUE)
 
 
 
-############## all tag once with hours by grid anbd vessel count density 
+############## all files at once with hours by grid anbd vessel count density 
 
 
 process_shapefile <- function(shp_path, vessel_exclude_patterns, out_dir, grid_resolution = 0.1) {
@@ -508,8 +508,9 @@ merge_csvs <- function(folder_path = "processed_grids") {
     
     df <- df %>%
       dplyr::mutate(year = as.integer(year),
-             month = as.integer(month),
-             source_file = filename)
+                    month = as.integer(month),
+                    year_month = paste0(year, "-", month),
+                    source_file = filename)
   })
   
   return(all_data)
@@ -517,6 +518,10 @@ merge_csvs <- function(folder_path = "processed_grids") {
 
 # Merge all
 all_merged <- merge_csvs("processed_grids")
+
+all_merged |> 
+  dplyr::arrange(year, month) |> 
+  tail()
 
 glimpse(all_merged)
 tail(all_merged)
@@ -535,6 +540,8 @@ mean_summary <- all_merged |>
   )
 
 mean_summary
+
+glimpse(mean_summary)
 
 
 monthly_summary <- all_merged |> 
@@ -585,6 +592,9 @@ all_merged |>
     p.adjust.method = "BH"  # Benjamini-Hochberg correction
   )
 
+
+
+
 start <- all_merged %>% dplyr::arrange(year, month) %>% dplyr::slice(1) %>% dplyr::mutate(date = paste(year)) %>% pull(date)
 end <- all_merged %>% dplyr::arrange(desc(year), desc(month)) %>% dplyr::slice(1) %>% dplyr::mutate(date = paste(year)) %>% pull(date)
 
@@ -602,7 +612,7 @@ ggplot(data = mean_summary) +
     colors = cmocean::cmocean("thermal")(300),
     na.value = NA,
     labels = scales::comma,
-    limits = c(0.1, max(mean_summary$mean_hours, na.rm = TRUE))
+    limits = c(1, max(mean_summary$mean_hours, na.rm = TRUE))
   ) +
   labs(
     title = "Mean Monthly Vessel Hours (AMSA Data)",
@@ -613,12 +623,14 @@ ggplot(data = mean_summary) +
 
 # vessel desnity
 AUS_region <- c(xmin=135, xmax = 160, ymin = -30, ymax = -5)
-ggplot(data = mean_summary) +
+AUS_region <- c(xmin=135, xmax = 180, ymin = -45, ymax = 5)
+ggplot(data = monthly_mean_summary) +
   geom_tile(aes(x = lon, y = lat, fill = mean_vessels)) +
   geom_sf(data = rnaturalearth::ne_countries(returnclass = "sf", scale = 10),
           color = "grey20", fill = "grey20") +
   coord_sf(xlim = c(AUS_region["xmin"], AUS_region["xmax"]),
-           ylim = c(AUS_region["ymin"], AUS_region["ymax"])) +
+           ylim = c(AUS_region["ymin"], AUS_region["ymax"]),
+           expand = FALSE) +
   scale_fill_gradientn(
     trans = 'log10',
     colors = cmocean::cmocean("thermal")(300),
@@ -788,3 +800,4 @@ monthly_transits |>
 
 monthly_transits |>
   rstatix::get_summary_stats(unique_vessels, type = "common")
+
