@@ -624,7 +624,7 @@ ggplot(data = mean_summary) +
 # vessel desnity
 AUS_region <- c(xmin=135, xmax = 160, ymin = -30, ymax = -5)
 AUS_region <- c(xmin=135, xmax = 180, ymin = -45, ymax = 5)
-ggplot(data = monthly_mean_summary) +
+ggplot(data = mean_summary) +
   geom_tile(aes(x = lon, y = lat, fill = mean_vessels)) +
   geom_sf(data = rnaturalearth::ne_countries(returnclass = "sf", scale = 10),
           color = "grey20", fill = "grey20") +
@@ -796,6 +796,11 @@ monthly_transits |>
 
 monthly_transits |>
   dplyr::filter(month %in% c(10, 11, 12, 1, 2, 3)) |> 
+  rstatix::get_summary_stats(unique_vessels, type = "common")
+
+monthly_transits |>
+  dplyr::filter(month %in% c(11, 12)) |> 
+  dplyr::group_by(month) |>
   rstatix::get_summary_stats(unique_vessels, type = "common")
 
 monthly_transits |>
