@@ -94,14 +94,65 @@ sdm_monsoon
 czu_value <- 0.55 # as per Womersley et al. 2022 | I think this is not needed when using habitat suitability
 
 
+# 1) Get 1% and 99% bounds
+qs <- terra::global(
+  ships_crop,
+  fun = function(x) stats::quantile(x, probs = c(0.01, 0.99), na.rm = TRUE)
+) |>
+  base::as.data.frame()
+
+vmin_q <- base::as.numeric(qs[1, 1])  # 1st percentile
+vmax_q <- base::as.numeric(qs[1, 2])  # 99th percentile
+
+# 2) Count non-NA cells and how many fall outside the bounds
+n_total <- terra::global(
+  ships_crop,
+  fun = function(x) base::sum(!base::is.na(x))
+) |>
+  base::as.numeric()
+
+n_below <- terra::global(
+  ships_crop,
+  fun = function(x) base::sum(x < vmin_q, na.rm = TRUE)
+) |>
+  base::as.numeric()
+
+n_above <- terra::global(
+  ships_crop,
+  fun = function(x) base::sum(x > vmax_q, na.rm = TRUE)
+) |>
+  base::as.numeric()
+
+# 3) Percentages
+pct_below <- 100 * n_below / n_total
+pct_above <- 100 * n_above / n_total
+pct_out   <- 100 * (n_below + n_above) / n_total
+
+base::data.frame(
+  vmin_q01 = vmin_q,
+  vmax_q99 = vmax_q,
+  n_total  = n_total,
+  n_below_q01 = n_below,
+  pct_below_q01 = pct_below,
+  n_above_q99 = n_above,
+  pct_above_q99 = pct_above,
+  pct_outside = pct_out
+)
+
+
+
+
+
 # rescale ship density to 0-1
 qs <- terra::global(
   ships_crop,
+  # scale ships to 0–1 (robust to outliers) so SCI is a unitless 0–1 overlap index, not dominated by raw vessel counts
+  
   fun = function(x) stats::quantile(x, probs = c(0.01, 0.99), na.rm = TRUE)) |> 
-  base::as.data.frame()
+  as.data.frame()
 
-vmin_q <- base::as.numeric(qs[1, 1])
-vmax_q <- base::as.numeric(qs[1, 2])
+vmin_q <- as.numeric(qs[1, 1])
+vmax_q <- as.numeric(qs[1, 2])
 
 ships_q01_qnorm <- terra::app(
   ships_crop,
@@ -113,7 +164,7 @@ terra::global(ships_q01_qnorm, "range", na.rm = TRUE)
 
 plot(ships_q01_qnorm, range = c(0, 1))
 
-
+ships_q01_qnorm
 # Compute SCI
 sci_raster <- mean_SDM_res * ships_q01_qnorm #* czu_value
 sci_raster
@@ -256,7 +307,8 @@ WB <- data.frame(Loc = c( "Wreck\nBay"),
 
 # Create the inset map of Australia
 # Get the world countries data from Natural Earth
-world <- ne_countries(scale = 10, returnclass = "sf")
+world <- rnaturalearth::ne_countries(scale = 10, returnclass = "sf")
+
 
 AUS_PNG <- world |> filter(name == "Australia" | name == "Papua New Guinea" | name == "Indonesia")
 plot(AUS_PNG$geometry)

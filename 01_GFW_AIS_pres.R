@@ -20,6 +20,9 @@ library(glue)
 library(ggplot2)
 
 
+citation("gfwr")
+
+
 # SET API -----------------------------------------------------------------
 
 # open R environment:
@@ -84,130 +87,132 @@ my_filter <- paste(
 my_filter
 input_filter <-  my_filter
 
-# start <- "2018-01-01"
-# end <- "2018-12-31"
-# ais_p_2018 <- gfwr::gfw_ais_presence(spatial_resolution = "LOW",
-#                                       temporal_resolution = "MONTHLY",
-#                                       #group_by = "FLAGANDGEARTYPE",
-#                                       filter_by = input_filter,
-#                                       start_date = start,
-#                                       end_date = end,
-#                                       region = my_shp,
-#                                       region_source = "USER_SHAPEFILE",
-#                                       key = key,
-#                                       print_request = TRUE)
-# 
-# 
-# 
-# start <- "2019-01-01"
-# end <- "2019-12-31"
-# ais_p_2019 <- gfwr::gfw_ais_presence(spatial_resolution = "LOW",
-#                                       temporal_resolution = "MONTHLY",
-#                                       #group_by = "FLAGANDGEARTYPE",
-#                                       filter_by = input_filter,
-#                                       start_date = start,
-#                                       end_date = end,
-#                                       region = my_shp,
-#                                       region_source = "USER_SHAPEFILE",
-#                                       key = key,
-#                                       print_request = TRUE)
-# 
-# start <- "2020-01-01"
-# end <- "2020-12-31"
-# ais_p_2020 <- gfwr::gfw_ais_presence(spatial_resolution = "LOW",
-#                                       temporal_resolution = "MONTHLY",
-#                                       #group_by = "FLAGANDGEARTYPE",
-#                                       filter_by = input_filter,
-#                                       start_date = start,
-#                                       end_date = end,
-#                                       region = my_shp,
-#                                       region_source = "USER_SHAPEFILE",
-#                                       key = key,
-#                                       print_request = TRUE)
-# 
-# start <- "2021-01-01"
-# end <- "2021-12-31"
-# ais_p_2021 <- gfwr::gfw_ais_presence(spatial_resolution = "LOW",
-#                                       temporal_resolution = "MONTHLY",
-#                                       #group_by = "FLAGANDGEARTYPE",
-#                                       filter_by = input_filter,
-#                                       start_date = start,
-#                                       end_date = end,
-#                                       region = my_shp,
-#                                       region_source = "USER_SHAPEFILE",
-#                                       key = key,
-#                                       print_request = TRUE)
-# 
-# 
-# start <- "2022-01-01"
-# end <- "2022-12-31"
-# ais_p_2022 <- gfwr::gfw_ais_presence(spatial_resolution = "LOW",
-#                                       temporal_resolution = "MONTHLY",
-#                                       #group_by = "FLAGANDGEARTYPE",
-#                                       filter_by = input_filter,
-#                                       start_date = start,
-#                                       end_date = end,
-#                                       region = my_shp,
-#                                       region_source = "USER_SHAPEFILE",
-#                                       key = key,
-#                                       print_request = TRUE)
-# 
-# start <- "2023-01-01"
-# end <- "2023-12-31"
-# ais_p_2023 <- gfwr::gfw_ais_presence(spatial_resolution = "LOW",
-#                                       temporal_resolution = "MONTHLY",
-#                                       #group_by = "FLAGANDGEARTYPE",
-#                                       filter_by = input_filter,
-#                                       start_date = start,
-#                                       end_date = end,
-#                                       region = my_shp,
-#                                       region_source = "USER_SHAPEFILE",
-#                                       key = key,
-#                                       print_request = TRUE)
-# 
-# start <- "2024-01-01"
-# end <- "2024-12-31"
-# ais_p_2024 <- gfwr::gfw_ais_presence(spatial_resolution = "LOW",
-#                                       temporal_resolution = "MONTHLY",
-#                                       #group_by = "FLAGANDGEARTYPE",
-#                                       filter_by = input_filter,
-#                                       start_date = start,
-#                                       end_date = end,
-#                                       region = my_shp,
-#                                       region_source = "USER_SHAPEFILE",
-#                                       key = key,
-#                                       print_request = TRUE)
-# 
-# start <- "2025-01-01"
-# end <- "2025-08-31"
-# ais_p_2025 <- gfwr::gfw_ais_presence(spatial_resolution = "LOW",
-#                                       temporal_resolution = "MONTHLY",
-#                                       #group_by = "FLAGANDGEARTYPE",
-#                                       filter_by = input_filter,
-#                                       start_date = start,
-#                                       end_date = end,
-#                                       region = my_shp,
-#                                       region_source = "USER_SHAPEFILE",
-#                                       key = key,
-#                                       print_request = TRUE)
-# 
-# 
-# 
-# ais_p_all <- dplyr::bind_rows(
-#   ais_p_2018,
-#   ais_p_2019,
-#   ais_p_2020,
-#   ais_p_2021,
-#   ais_p_2022,
-#   ais_p_2023,
-#   ais_p_2024,
-#   ais_p_2025
-# )
-# 
-# ais_p_all
-# 
-# 
+start <- "2018-01-01"
+end <- "2018-12-31"
+ais_p_2018 <- gfwr::gfw_ais_presence(spatial_resolution = "LOW",
+                                      temporal_resolution = "MONTHLY",
+                                      # group_by = "VESSEL_ID",
+                                      filter_by = input_filter,
+                                      start_date = start,
+                                      end_date = end,
+                                      region = my_shp,
+                                      region_source = "USER_SHAPEFILE",
+                                      key = key,
+                                      print_request = TRUE)
 
+
+ais_p_2018
+
+
+start <- "2019-01-01"
+end <- "2019-12-31"
+ais_p_2019 <- gfwr::gfw_ais_presence(spatial_resolution = "LOW",
+                                      temporal_resolution = "MONTHLY",
+                                      #group_by = "FLAGANDGEARTYPE",
+                                      filter_by = input_filter,
+                                      start_date = start,
+                                      end_date = end,
+                                      region = my_shp,
+                                      region_source = "USER_SHAPEFILE",
+                                      key = key,
+                                      print_request = TRUE)
+
+start <- "2020-01-01"
+end <- "2020-12-31"
+ais_p_2020 <- gfwr::gfw_ais_presence(spatial_resolution = "LOW",
+                                      temporal_resolution = "MONTHLY",
+                                      #group_by = "FLAGANDGEARTYPE",
+                                      filter_by = input_filter,
+                                      start_date = start,
+                                      end_date = end,
+                                      region = my_shp,
+                                      region_source = "USER_SHAPEFILE",
+                                      key = key,
+                                      print_request = TRUE)
+
+start <- "2021-01-01"
+end <- "2021-12-31"
+ais_p_2021 <- gfwr::gfw_ais_presence(spatial_resolution = "LOW",
+                                      temporal_resolution = "MONTHLY",
+                                      #group_by = "FLAGANDGEARTYPE",
+                                      filter_by = input_filter,
+                                      start_date = start,
+                                      end_date = end,
+                                      region = my_shp,
+                                      region_source = "USER_SHAPEFILE",
+                                      key = key,
+                                      print_request = TRUE)
+
+
+start <- "2022-01-01"
+end <- "2022-12-31"
+ais_p_2022 <- gfwr::gfw_ais_presence(spatial_resolution = "LOW",
+                                      temporal_resolution = "MONTHLY",
+                                      #group_by = "FLAGANDGEARTYPE",
+                                      filter_by = input_filter,
+                                      start_date = start,
+                                      end_date = end,
+                                      region = my_shp,
+                                      region_source = "USER_SHAPEFILE",
+                                      key = key,
+                                      print_request = TRUE)
+
+start <- "2023-01-01"
+end <- "2023-12-31"
+ais_p_2023 <- gfwr::gfw_ais_presence(spatial_resolution = "LOW",
+                                      temporal_resolution = "MONTHLY",
+                                      #group_by = "FLAGANDGEARTYPE",
+                                      filter_by = input_filter,
+                                      start_date = start,
+                                      end_date = end,
+                                      region = my_shp,
+                                      region_source = "USER_SHAPEFILE",
+                                      key = key,
+                                      print_request = TRUE)
+
+start <- "2024-01-01"
+end <- "2024-12-31"
+ais_p_2024 <- gfwr::gfw_ais_presence(spatial_resolution = "LOW",
+                                      temporal_resolution = "MONTHLY",
+                                      #group_by = "FLAGANDGEARTYPE",
+                                      filter_by = input_filter,
+                                      start_date = start,
+                                      end_date = end,
+                                      region = my_shp,
+                                      region_source = "USER_SHAPEFILE",
+                                      key = key,
+                                      print_request = TRUE)
+
+start <- "2025-01-01"
+end <- "2025-08-31"
+ais_p_2025 <- gfwr::gfw_ais_presence(spatial_resolution = "LOW",
+                                      temporal_resolution = "MONTHLY",
+                                      #group_by = "FLAGANDGEARTYPE",
+                                      filter_by = input_filter,
+                                      start_date = start,
+                                      end_date = end,
+                                      region = my_shp,
+                                      region_source = "USER_SHAPEFILE",
+                                      key = key,
+                                      print_request = TRUE)
+
+
+
+ais_p_all <- dplyr::bind_rows(
+  ais_p_2018,
+  ais_p_2019,
+  ais_p_2020,
+  ais_p_2021,
+  ais_p_2022,
+  ais_p_2023,
+  ais_p_2024,
+  ais_p_2025
+)
+
+ais_p_all
+
+
+saveRDS(ais_p_all, "data/processed/GFW_SWP_AIS_pres_2018_2025_big_vessels_4knots+.rds")
 
 
 # Summary stats  ----------------------------------------------------------
@@ -216,34 +221,34 @@ input_filter <-  my_filter
 
 
 
-# mean_month_gfw <- ais_p_all |>
-#   dplyr::mutate(
-#     date = base::as.Date(paste0(`Time Range`, "-01")),
-#     days_in_month = lubridate::days_in_month(date)
-#   ) |>
-#   dplyr::rename(
-#     unique_vessels = `Vessel IDs`,
-#     total_hours    = `Vessel Presence Hours`,
-#     lat = Lat,
-#     lon = Lon
-#   ) |>
-#   dplyr::mutate(
-#     hours_per_day = total_hours / days_in_month
-#   ) |>
-#   dplyr::group_by(lon, lat) |>
-#   dplyr::summarise(
-#     mean_hours_per_day = base::mean(hours_per_day, na.rm = TRUE),
-#     mean_hours = mean_hours_per_day * 30,
-#     mean_vessels = base::mean(unique_vessels, na.rm = TRUE),
-#     median_vessels = stats::median(unique_vessels, na.rm = TRUE),
-#     min_vessels = base::min(unique_vessels, na.rm = TRUE),
-#     max_vessels = base::max(unique_vessels, na.rm = TRUE),
-#     sd_vessels = stats::sd(unique_vessels, na.rm = TRUE),
-#     p90_hours_per_day = stats::quantile(hours_per_day, 0.9, na.rm = TRUE),
-#     n_months = dplyr::n(),
-#     n_years = dplyr::n_distinct(lubridate::year(date)),
-#     .groups = "drop"
-#   )
+mean_month_gfw <- ais_p_all |>
+  dplyr::mutate(
+    date = base::as.Date(paste0(`Time Range`, "-01")),
+    days_in_month = lubridate::days_in_month(date)
+  ) |>
+  dplyr::rename(
+    unique_vessels = `Vessel IDs`,
+    total_hours    = `Vessel Presence Hours`,
+    lat = Lat,
+    lon = Lon
+  ) |>
+  dplyr::mutate(
+    hours_per_day = total_hours / days_in_month
+  ) |>
+  dplyr::group_by(lon, lat) |>
+  dplyr::summarise(
+    mean_hours_per_day = base::mean(hours_per_day, na.rm = TRUE),
+    mean_hours = mean_hours_per_day * 30,
+    mean_vessels = base::mean(unique_vessels, na.rm = TRUE),
+    median_vessels = stats::median(unique_vessels, na.rm = TRUE),
+    min_vessels = base::min(unique_vessels, na.rm = TRUE),
+    max_vessels = base::max(unique_vessels, na.rm = TRUE),
+    sd_vessels = stats::sd(unique_vessels, na.rm = TRUE),
+    p90_hours_per_day = stats::quantile(hours_per_day, 0.9, na.rm = TRUE),
+    n_months = dplyr::n(),
+    n_years = dplyr::n_distinct(lubridate::year(date)),
+    .groups = "drop"
+  )
 
 
 
@@ -805,4 +810,304 @@ terra::crs(r_vessels_slow) <- "EPSG:4326"
 terra::writeRaster(r_vessels_all, "data/processed/GFW_SWP_AIS_pres_2018_2025_bigVessels.tif", overwrite = TRUE)
 terra::writeRaster(r_vessels_fast, "data/processed/GFW_SWP_AIS_pres_2018_2025_bigVessels_Speed10+knots.tif", overwrite = TRUE)
 terra::writeRaster(r_vessels_slow, "data/processed/GFW_SWP_AIS_pres_2018_2025_bigVessels_Speed-10knots.tif", overwrite = TRUE)
+
+
+
+
+
+
+# Stats -------------------------------------------------------------------
+
+# Step 5: Calculate monthly mean per cell
+
+ais_p_all
+
+mean_summary <- ais_p_all |> 
+  dplyr::group_by(Lon, Lat) |> 
+  dplyr::summarise(
+    min_vessels = min(`Vessel IDs`, na.rm = TRUE),
+    mean_vessels = mean(`Vessel IDs`, na.rm = TRUE),
+    max_vessels = max(`Vessel IDs`, na.rm = TRUE),
+    min_hours = min(`Vessel Presence Hours`, na.rm = TRUE),
+    mean_hours = mean(`Vessel Presence Hours`, na.rm = TRUE),
+    max_hours = max(`Vessel Presence Hours`, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+mean_summary
+
+glimpse(mean_summary)
+
+
+monthly_summary <- all_merged |> 
+  dplyr::group_by(month, lon, lat) |> 
+  dplyr::summarise(
+    min_vessels = min(unique_vessels, na.rm = TRUE),
+    mean_vessels = mean(unique_vessels, na.rm = TRUE),
+    max_vessels = max(unique_vessels, na.rm = TRUE),
+    min_hours = min(total_hours, na.rm = TRUE),
+    mean_hours = mean(total_hours, na.rm = TRUE),
+    max_hours = max(total_hours, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+monthly_summary
+
+# check for monthly variations in shipping traffic in vicinity of Wreck Bay
+
+all_merged |> 
+  dplyr::filter(lat >= -17, lat <= -12, 
+                lon >= 143, lon <= 146) |>
+  dplyr::group_by(month) |>
+  dplyr::summarise(
+    min_vessels = min(unique_vessels, na.rm = TRUE),
+    mean_vessels = mean(unique_vessels, na.rm = TRUE),
+    max_vessels = max(unique_vessels, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+#check for statisitacl significance 
+
+library(rstatix)
+
+all_merged |>
+  dplyr::filter(lat >= -17, lat <= -12,
+                lon >= 142.7, lon <= 146.5) |> 
+  dplyr::mutate(month = factor(month)) |>
+  rstatix::kruskal_test(unique_vessels ~ month) |>
+  rstatix::add_significance()
+
+all_merged |>
+  dplyr::filter(month %in% c(10, 11, 12, 1, 2, 3)) |> 
+  dplyr::filter(lat >= -17, lat <= -12,
+                lon >= 143, lon <= 146) |> 
+  dplyr::mutate(month = factor(month)) |>
+  rstatix::pairwise_wilcox_test(
+    formula = unique_vessels ~ month,
+    p.adjust.method = "BH"  # Benjamini-Hochberg correction
+  )
+
+
+
+
+start <- all_merged %>% dplyr::arrange(year, month) %>% dplyr::slice(1) %>% dplyr::mutate(date = paste(year)) %>% pull(date)
+end <- all_merged %>% dplyr::arrange(desc(year), desc(month)) %>% dplyr::slice(1) %>% dplyr::mutate(date = paste(year)) %>% pull(date)
+
+
+# vessel hour density
+AUS_region <- c(xmin=135, xmax = 160, ymin = -30, ymax = -5)
+ggplot(data = mean_summary) +
+  geom_tile(aes(x = lon, y = lat, fill = mean_hours)) +
+  geom_sf(data = rnaturalearth::ne_countries(returnclass = "sf", scale = 10),
+          color = "grey20", fill = "grey20") +
+  coord_sf(xlim = c(AUS_region["xmin"], AUS_region["xmax"]),
+           ylim = c(AUS_region["ymin"], AUS_region["ymax"])) +
+  scale_fill_gradientn(
+    trans = 'log10',
+    colors = cmocean::cmocean("thermal")(300),
+    na.value = NA,
+    labels = scales::comma,
+    limits = c(1, max(mean_summary$mean_hours, na.rm = TRUE))
+  ) +
+  labs(
+    title = "Mean Monthly Vessel Hours (AMSA Data)",
+    subtitle = glue::glue("{start} to {end}"),
+    fill = "Hours"
+  ) +
+  map_theme_dark
+
+# vessel desnity
+AUS_region <- c(xmin=135, xmax = 160, ymin = -30, ymax = -5)
+AUS_region <- c(xmin=135, xmax = 180, ymin = -45, ymax = 5)
+ggplot(data = mean_summary) +
+  geom_tile(aes(x = lon, y = lat, fill = mean_vessels)) +
+  geom_sf(data = rnaturalearth::ne_countries(returnclass = "sf", scale = 10),
+          color = "grey20", fill = "grey20") +
+  coord_sf(xlim = c(AUS_region["xmin"], AUS_region["xmax"]),
+           ylim = c(AUS_region["ymin"], AUS_region["ymax"]),
+           expand = FALSE) +
+  scale_fill_gradientn(
+    trans = 'log10',
+    colors = cmocean::cmocean("thermal")(300),
+    na.value = NA,
+    labels = scales::comma,
+    limits = c(1, max(mean_summary$mean_vessels, na.rm = TRUE))
+  ) +
+  labs(
+    title = "Mean Monthly Vessel Density (AMSA Data)",
+    subtitle = glue::glue("{start} to {end}"),
+    fill = "Count"
+  ) +
+  map_theme_dark
+
+
+
+
+# Raster: mean vessel count
+r_vessels <- terra::rast(mean_summary[, c("lon", "lat", "mean_vessels")], type = "xyz")
+crs(r_vessels) <- "EPSG:4326"
+writeRaster(r_vessels, "Shipping_MeanVessels_AUS_2018-2025.tif", overwrite = TRUE)
+
+# Raster: mean vessel hours
+r_hours <- terra::rast(mean_summary[, c("lon", "lat", "mean_hours")], type = "xyz")
+crs(r_hours) <- "EPSG:4326"
+writeRaster(r_hours, "Shipping_MeanHours_AUS_2018-2025.tif", overwrite = TRUE)
+
+
+
+
+
+# are restricted info and stats  ------------------------------------------
+
+process_shapefile_target_area <- function(shp_path, vessel_exclude_patterns, out_dir,
+                                          lat_range = c(-17, -12), lon_range = c(142.7, 146.7)) {
+  tryCatch({
+    file_name <- tools::file_path_sans_ext(basename(shp_path))
+    out_file <- file.path(out_dir, paste0(file_name, "_target_processed.csv"))
+    if (file.exists(out_file)) {
+      message("Skipping (already processed): ", out_file)
+      return(out_file)
+    }
+    
+    sf_obj <- sf::st_read(shp_path, quiet = TRUE)
+    
+    if ("TMESTAMP" %in% names(sf_obj) && !"TIMESTAMP" %in% names(sf_obj)) {
+      names(sf_obj)[names(sf_obj) == "TMESTAMP"] <- "TIMESTAMP"
+    }
+    
+    df <- sf::st_read(shp_path, quiet = TRUE) |> as.data.frame()
+    
+    timestamp_col <- grep("^t[ia]{1,2}m[e]?s?t?a?m?p?$", names(df), ignore.case = TRUE, value = TRUE)
+    if (length(timestamp_col) == 1) {
+      names(df)[names(df) == timestamp_col] <- "TIMESTAMP"
+    } else {
+      stop("No valid TIMESTAMP column found in ", basename(shp_path))
+    }
+    
+    df <- df |>
+      dplyr::filter(!grepl(paste(vessel_exclude_patterns, collapse = "|"), TYPE, ignore.case = TRUE)) |>
+      dplyr::filter(LENGTH >= 30)
+    
+    df$TIMESTAMP <- suppressWarnings(lubridate::dmy_hms(df$TIMESTAMP, tz = "UTC"))
+    df <- dplyr::arrange(df, CRAFT_ID, TIMESTAMP)
+    
+    df <- df |>
+      dplyr::mutate(
+        time_diff = as.numeric(difftime(lead(TIMESTAMP), TIMESTAMP, units = "hours")),
+        dist_km = geosphere::distHaversine(cbind(LON, LAT), cbind(lead(LON), lead(LAT))) / 1000,
+        time_diff = ifelse(time_diff < 0 | time_diff > 6 | dist_km > 30, NA, time_diff)
+      )
+    
+    # Filter to target area
+    df <- df |>
+      dplyr::filter(LAT >= lat_range[1], LAT <= lat_range[2],
+                    LON >= lon_range[1], LON <= lon_range[2])
+    
+    # Summarise over the *entire area* (not grid cells)
+    summary_df <- df |> 
+      dplyr::summarise(
+        unique_vessels = dplyr::n_distinct(CRAFT_ID),
+        total_hours = sum(time_diff, na.rm = TRUE)
+      )
+    
+    # Add metadata
+    year <- as.integer(stringr::str_extract(file_name, "20\\d{2}"))
+    month <- as.integer(stringr::str_extract(file_name, "(?<!\\d)(0[1-9]|1[0-2])(?!\\d)"))
+    summary_df$year <- year
+    summary_df$month <- month
+    summary_df$source_file <- basename(shp_path)
+    
+    readr::write_csv(summary_df, out_file)
+    message("Processed and saved: ", out_file)
+    return(out_file)
+    
+  }, error = function(e) {
+    message("Failed: ", basename(shp_path), " - ", e$message)
+    return(NULL)
+  })
+}
+
+
+output_folder <- "target_area_monthly"
+dir.create(output_folder, showWarnings = FALSE)
+
+results_paths <- purrr::map(
+  shp_files,
+  ~ process_shapefile_target_area(.x, vessel_exclude_patterns, output_folder)
+) |> purrr::compact()
+
+
+
+monthly_transits <- readr::read_csv(
+  list.files("target_area_monthly", full.names = TRUE, pattern = "_target_processed.csv$")
+) |> 
+  dplyr::arrange(year, month)
+
+
+monthly_transits
+
+# Step 1: Compute the mean vessel count for each month across all years
+monthly_means <- monthly_transits |>
+  dplyr::group_by(year, month) |>
+  dplyr::summarise(
+    mean_vessels = mean(unique_vessels, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+
+monthly_transits |>
+  dplyr::mutate(month = factor(month)) |>
+  rstatix::kruskal_test(unique_vessels ~ month) |>
+  rstatix::add_significance()
+
+monthly_transits |>
+  dplyr::mutate(month = factor(month)) |>
+  rstatix::pairwise_wilcox_test(
+    formula = unique_vessels ~ month,
+    p.adjust.method = "BH"  
+  ) |> 
+  print(n=100)
+
+
+monthly_transits |>
+  dplyr::filter(month %in% c(10, 11, 12, 1, 2, 3)) |> 
+  dplyr::mutate(month = factor(month)) |>
+  rstatix::kruskal_test(unique_vessels ~ month) |>
+  rstatix::add_significance()
+
+monthly_transits |>
+  dplyr::filter(month %in% c(10, 11, 12, 1, 2, 3)) |> 
+  dplyr::mutate(month = factor(month)) |>
+  rstatix::pairwise_wilcox_test(
+    formula = unique_vessels ~ month,
+    p.adjust.method = "BH" 
+  )
+
+
+monthly_transits |>
+  dplyr::filter(month %in% c(10, 11, 12, 1, 2, 3)) |> 
+  dplyr::group_by(month) |>
+  rstatix::get_summary_stats(unique_vessels, type = "common")
+
+monthly_transits |>
+  dplyr::filter(month %in% c(10, 11, 12, 1, 2, 3)) |> 
+  rstatix::get_summary_stats(unique_vessels, type = "common")
+
+monthly_transits |>
+  dplyr::filter(month %in% c(11, 12)) |> 
+  dplyr::group_by(month) |>
+  rstatix::get_summary_stats(unique_vessels, type = "common")
+
+monthly_transits |>
+  rstatix::get_summary_stats(unique_vessels, type = "common")
+
+
+
+
+
+
+
+
+
+
 
