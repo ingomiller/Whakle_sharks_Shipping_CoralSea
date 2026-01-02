@@ -662,7 +662,7 @@ writeRaster(r_hours, "Shipping_MeanHours_AUS_2018-2025.tif", overwrite = TRUE)
 
 
 
-# are restricted info and stats  ------------------------------------------
+# area restricted info and stats  ------------------------------------------
 
 process_shapefile_target_area <- function(shp_path, vessel_exclude_patterns, out_dir,
                                           lat_range = c(-17, -12), lon_range = c(142.7, 146.7)) {
@@ -805,4 +805,6 @@ monthly_transits |>
 
 monthly_transits |>
   rstatix::get_summary_stats(unique_vessels, type = "common")
+
+
 

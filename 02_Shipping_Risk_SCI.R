@@ -24,7 +24,7 @@ ships_gfw_slow <- terra::rast("data/processed/GFW_SWP_AIS_pres_2018_2025_bigVess
 
 
 
-# ships_amsa
+# ships GFW
 ships_gfw
 ships_gfw_fast
 ships_gfw_slow
@@ -91,7 +91,7 @@ sdm_monsoon
 
 
 # Set CZU (collision zone use value)
-czu_value <- 0.55 # as per Womersley et al. 2022 | I think this is not needed when using habitat suitability
+# czu_value <- 0.55 # as per Womersley et al. 2022 | I think this is not needed when using habitat suitability
 
 
 # 1) Get 1% and 99% bounds

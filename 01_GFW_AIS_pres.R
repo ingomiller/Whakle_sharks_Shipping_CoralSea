@@ -244,14 +244,14 @@ mean_month_gfw <- ais_p_all |>
     min_vessels = base::min(unique_vessels, na.rm = TRUE),
     max_vessels = base::max(unique_vessels, na.rm = TRUE),
     sd_vessels = stats::sd(unique_vessels, na.rm = TRUE),
-    p90_hours_per_day = stats::quantile(hours_per_day, 0.9, na.rm = TRUE),
+    q90_hours_per_day = stats::quantile(hours_per_day, 0.9, na.rm = TRUE),
     n_months = dplyr::n(),
     n_years = dplyr::n_distinct(lubridate::year(date)),
     .groups = "drop"
   )
 
 
-
+mean_month_gfw
 
 
 
@@ -300,10 +300,43 @@ mean_month_gfw <- readRDS("data/processed/GFW_SWP_AIS_pres_2018_2025_bigVessels_
 
 str(mean_month_gfw)
 
+input_dt <- mean_month_gfw
+
+
+ggplot2::ggplot() +
+  ggplot2::geom_tile(
+    data = input_dt|> dplyr::filter(mean_vessels >= 1),
+    mapping = ggplot2::aes(x = lon, y = lat, fill = mean_vessels)
+  ) +
+  # ggplot2::geom_sf(
+  #   data = rnaturalearth::ne_countries(returnclass = "sf", scale = 10),
+  #   color = "grey20", fill = "grey20"
+  # ) +
+  ggplot2::coord_sf(
+    expand = FALSE
+  ) +
+  ggplot2::scale_fill_gradientn(
+    trans = "log10",
+    colors = cmocean::cmocean("thermal")(300),
+    na.value = NA,
+    labels = scales::comma,
+    limits = c(1, max(input_dt$mean_vessels, na.rm = TRUE))
+  ) +
+  ggplot2::labs(
+    title = "Mean Monthly Vessel Density (GFW AIS Presence Data)",
+    subtitle = glue::glue("{start} to {end}"),
+    fill = "Mean Vessel Density"
+  ) +
+  map_theme_dark
+
+
+
+
+
 
 start <- "2018-06-01"
 end <- "2025-06-31"
-input_dt <- mean_month_gfw
+
 # AUS_region <- c(xmin=135, xmax = 160, ymin = -30, ymax = -5)
 AUS_region <- c(xmin=140, xmax = 170, ymin = -40, ymax = 0)
 
@@ -822,6 +855,12 @@ terra::writeRaster(r_vessels_slow, "data/processed/GFW_SWP_AIS_pres_2018_2025_bi
 
 ais_p_all
 
+ais_p_all <- ais_p_all |>
+  dplyr::mutate(
+    month = as.integer(stringr::str_sub(`Time Range`, 6, 7)),
+    year = as.integer(stringr::str_sub(`Time Range`, 1, 4))
+  )
+
 mean_summary <- ais_p_all |> 
   dplyr::group_by(Lon, Lat) |> 
   dplyr::summarise(
@@ -839,65 +878,89 @@ mean_summary
 glimpse(mean_summary)
 
 
-monthly_summary <- all_merged |> 
-  dplyr::group_by(month, lon, lat) |> 
+monthly_summary <- ais_p_all |> 
+  dplyr::group_by(month, Lon, Lat) |> 
   dplyr::summarise(
-    min_vessels = min(unique_vessels, na.rm = TRUE),
-    mean_vessels = mean(unique_vessels, na.rm = TRUE),
-    max_vessels = max(unique_vessels, na.rm = TRUE),
-    min_hours = min(total_hours, na.rm = TRUE),
-    mean_hours = mean(total_hours, na.rm = TRUE),
-    max_hours = max(total_hours, na.rm = TRUE),
+    min_vessels = min(`Vessel IDs`, na.rm = TRUE),
+    mean_vessels = mean(`Vessel IDs`, na.rm = TRUE),
+    max_vessels = max(`Vessel IDs`, na.rm = TRUE),
+    min_hours = min(`Vessel Presence Hours`, na.rm = TRUE),
+    mean_hours = mean(`Vessel Presence Hours`, na.rm = TRUE),
+    max_hours = max(`Vessel Presence Hours`, na.rm = TRUE),
     .groups = "drop"
   )
 
 monthly_summary
 
-# check for monthly variations in shipping traffic in vicinity of Wreck Bay
+# check for monthly variations in shipping traffic in vicinity of Wreck Bay (NOTE: this is stats per grid average grid cell!!!)
 
-all_merged |> 
-  dplyr::filter(lat >= -17, lat <= -12, 
-                lon >= 143, lon <= 146) |>
+ais_p_all |> 
+  dplyr::filter(Lat >= -17, Lat <= -12, 
+                Lon >= 142.7, Lon <= 146.7) |>
   dplyr::group_by(month) |>
+  rstatix::get_summary_stats(`Vessel IDs`, type = "common")
+
+
+
+
+#overall mean ship density around Wreck Bay
+ais_p_all |> 
+  dplyr::filter(Lat >= -17, Lat <= -12, 
+                Lon >= 142.7, Lon <= 146.7) |>
+  rstatix::get_summary_stats(`Vessel IDs`, type = "common")
+
+
+
+area_month <- ais_p_all |>
+  dplyr::filter(Lat >= -17, Lat <= -12,
+                Lon >= 142.7, Lon <= 146.7) |>
+  dplyr::group_by(year, month) |>
   dplyr::summarise(
-    min_vessels = min(unique_vessels, na.rm = TRUE),
-    mean_vessels = mean(unique_vessels, na.rm = TRUE),
-    max_vessels = max(unique_vessels, na.rm = TRUE),
+    total_presence_hours = sum(`Vessel Presence Hours`, na.rm = TRUE),
     .groups = "drop"
   )
+
+area_month
+
+area_month |>
+  rstatix::get_summary_stats(total_presence_hours, type = "common")
+
+
+
+
 
 #check for statisitacl significance 
 
 library(rstatix)
 
-all_merged |>
-  dplyr::filter(lat >= -17, lat <= -12,
-                lon >= 142.7, lon <= 146.5) |> 
+ais_p_all |>
+  dplyr::filter(Lat >= -17, Lat <= -12,
+                Lon >= 142.7, Lon <= 146.7) |> 
   dplyr::mutate(month = factor(month)) |>
-  rstatix::kruskal_test(unique_vessels ~ month) |>
+  rstatix::kruskal_test(`Vessel IDs` ~ month) |>
   rstatix::add_significance()
 
-all_merged |>
+ais_p_all |>
   dplyr::filter(month %in% c(10, 11, 12, 1, 2, 3)) |> 
-  dplyr::filter(lat >= -17, lat <= -12,
-                lon >= 143, lon <= 146) |> 
+  dplyr::filter(Lat >= -17, Lat <= -12,
+                Lon >= 142.7, Lon <= 146.7) |> 
   dplyr::mutate(month = factor(month)) |>
   rstatix::pairwise_wilcox_test(
-    formula = unique_vessels ~ month,
+    formula = `Vessel IDs` ~ month,
     p.adjust.method = "BH"  # Benjamini-Hochberg correction
   )
 
 
 
 
-start <- all_merged %>% dplyr::arrange(year, month) %>% dplyr::slice(1) %>% dplyr::mutate(date = paste(year)) %>% pull(date)
-end <- all_merged %>% dplyr::arrange(desc(year), desc(month)) %>% dplyr::slice(1) %>% dplyr::mutate(date = paste(year)) %>% pull(date)
+start <- ais_p_all |>  dplyr::arrange(year, month) |>  dplyr::slice(1) |>  dplyr::mutate(date = paste(year)) |>  pull(date)
+end <- ais_p_all |>  dplyr::arrange(desc(year), desc(month)) |>  dplyr::slice(1) |>  dplyr::mutate(date = paste(year)) |>  pull(date)
 
 
 # vessel hour density
-AUS_region <- c(xmin=135, xmax = 160, ymin = -30, ymax = -5)
+AUS_region <- c(xmin=140, xmax = 170, ymin = -40, ymax = 0)
 ggplot(data = mean_summary) +
-  geom_tile(aes(x = lon, y = lat, fill = mean_hours)) +
+  geom_tile(aes(x = Lon, y = Lat, fill = mean_hours)) +
   geom_sf(data = rnaturalearth::ne_countries(returnclass = "sf", scale = 10),
           color = "grey20", fill = "grey20") +
   coord_sf(xlim = c(AUS_region["xmin"], AUS_region["xmax"]),
@@ -910,17 +973,16 @@ ggplot(data = mean_summary) +
     limits = c(1, max(mean_summary$mean_hours, na.rm = TRUE))
   ) +
   labs(
-    title = "Mean Monthly Vessel Hours (AMSA Data)",
+    title = "Mean Monthly Vessel Hours (GFW AIS Presence Data)",
     subtitle = glue::glue("{start} to {end}"),
     fill = "Hours"
   ) +
   map_theme_dark
 
 # vessel desnity
-AUS_region <- c(xmin=135, xmax = 160, ymin = -30, ymax = -5)
-AUS_region <- c(xmin=135, xmax = 180, ymin = -45, ymax = 5)
+AUS_region <- c(xmin=140, xmax = 170, ymin = -40, ymax = 0)
 ggplot(data = mean_summary) +
-  geom_tile(aes(x = lon, y = lat, fill = mean_vessels)) +
+  geom_tile(aes(x = Lon, y = Lat, fill = mean_vessels)) +
   geom_sf(data = rnaturalearth::ne_countries(returnclass = "sf", scale = 10),
           color = "grey20", fill = "grey20") +
   coord_sf(xlim = c(AUS_region["xmin"], AUS_region["xmax"]),
@@ -934,7 +996,7 @@ ggplot(data = mean_summary) +
     limits = c(1, max(mean_summary$mean_vessels, na.rm = TRUE))
   ) +
   labs(
-    title = "Mean Monthly Vessel Density (AMSA Data)",
+    title = "Mean Monthly Vessel Density (GFW AIS Presence Data)",
     subtitle = glue::glue("{start} to {end}"),
     fill = "Count"
   ) +
@@ -944,170 +1006,289 @@ ggplot(data = mean_summary) +
 
 
 # Raster: mean vessel count
-r_vessels <- terra::rast(mean_summary[, c("lon", "lat", "mean_vessels")], type = "xyz")
+mean_summary
+r_vessels <- terra::rast(mean_summary[, c("Lon", "Lat", "mean_vessels")], type = "xyz")
 crs(r_vessels) <- "EPSG:4326"
-writeRaster(r_vessels, "Shipping_MeanVessels_AUS_2018-2025.tif", overwrite = TRUE)
+r_vessels
+writeRaster(r_vessels, "GFW_Shipping_MeanVessels_AUS_2018-2025.tif", overwrite = TRUE)
 
 # Raster: mean vessel hours
-r_hours <- terra::rast(mean_summary[, c("lon", "lat", "mean_hours")], type = "xyz")
+r_hours <- terra::rast(mean_summary[, c("Lon", "Lat", "mean_hours")], type = "xyz")
 crs(r_hours) <- "EPSG:4326"
-writeRaster(r_hours, "Shipping_MeanHours_AUS_2018-2025.tif", overwrite = TRUE)
+writeRaster(r_hours, "GFW_Shipping_MeanHours_AUS_2018-2025.tif", overwrite = TRUE)
+
+r_vessels
 
 
 
+# Stats on high traffic cells (shippign lanes) ----------------------------
 
 
-# are restricted info and stats  ------------------------------------------
-
-process_shapefile_target_area <- function(shp_path, vessel_exclude_patterns, out_dir,
-                                          lat_range = c(-17, -12), lon_range = c(142.7, 146.7)) {
-  tryCatch({
-    file_name <- tools::file_path_sans_ext(basename(shp_path))
-    out_file <- file.path(out_dir, paste0(file_name, "_target_processed.csv"))
-    if (file.exists(out_file)) {
-      message("Skipping (already processed): ", out_file)
-      return(out_file)
-    }
-    
-    sf_obj <- sf::st_read(shp_path, quiet = TRUE)
-    
-    if ("TMESTAMP" %in% names(sf_obj) && !"TIMESTAMP" %in% names(sf_obj)) {
-      names(sf_obj)[names(sf_obj) == "TMESTAMP"] <- "TIMESTAMP"
-    }
-    
-    df <- sf::st_read(shp_path, quiet = TRUE) |> as.data.frame()
-    
-    timestamp_col <- grep("^t[ia]{1,2}m[e]?s?t?a?m?p?$", names(df), ignore.case = TRUE, value = TRUE)
-    if (length(timestamp_col) == 1) {
-      names(df)[names(df) == timestamp_col] <- "TIMESTAMP"
-    } else {
-      stop("No valid TIMESTAMP column found in ", basename(shp_path))
-    }
-    
-    df <- df |>
-      dplyr::filter(!grepl(paste(vessel_exclude_patterns, collapse = "|"), TYPE, ignore.case = TRUE)) |>
-      dplyr::filter(LENGTH >= 30)
-    
-    df$TIMESTAMP <- suppressWarnings(lubridate::dmy_hms(df$TIMESTAMP, tz = "UTC"))
-    df <- dplyr::arrange(df, CRAFT_ID, TIMESTAMP)
-    
-    df <- df |>
-      dplyr::mutate(
-        time_diff = as.numeric(difftime(lead(TIMESTAMP), TIMESTAMP, units = "hours")),
-        dist_km = geosphere::distHaversine(cbind(LON, LAT), cbind(lead(LON), lead(LAT))) / 1000,
-        time_diff = ifelse(time_diff < 0 | time_diff > 6 | dist_km > 30, NA, time_diff)
-      )
-    
-    # Filter to target area
-    df <- df |>
-      dplyr::filter(LAT >= lat_range[1], LAT <= lat_range[2],
-                    LON >= lon_range[1], LON <= lon_range[2])
-    
-    # Summarise over the *entire area* (not grid cells)
-    summary_df <- df |> 
-      dplyr::summarise(
-        unique_vessels = dplyr::n_distinct(CRAFT_ID),
-        total_hours = sum(time_diff, na.rm = TRUE)
-      )
-    
-    # Add metadata
-    year <- as.integer(stringr::str_extract(file_name, "20\\d{2}"))
-    month <- as.integer(stringr::str_extract(file_name, "(?<!\\d)(0[1-9]|1[0-2])(?!\\d)"))
-    summary_df$year <- year
-    summary_df$month <- month
-    summary_df$source_file <- basename(shp_path)
-    
-    readr::write_csv(summary_df, out_file)
-    message("Processed and saved: ", out_file)
-    return(out_file)
-    
-  }, error = function(e) {
-    message("Failed: ", basename(shp_path), " - ", e$message)
-    return(NULL)
-  })
-}
+cell_res  <- 0.1  # your grid resolution
 
 
-output_folder <- "target_area_monthly"
-dir.create(output_folder, showWarnings = FALSE)
-
-results_paths <- purrr::map(
-  shp_files,
-  ~ process_shapefile_target_area(.x, vessel_exclude_patterns, output_folder)
-) |> purrr::compact()
+study_lat_range <- c(-40, 0)
+study_lon_range <- c(140, 170)
 
 
+lane_grid_all <- ais_p_all |>
+  dplyr::filter(
+    Lat >= study_lat_range[1], Lat <= study_lat_range[2],
+    Lon >= study_lon_range[1], Lon <= study_lon_range[2]
+  ) |>
+  dplyr::group_by(Lat, Lon) |>
+  dplyr::summarise(
+    mean_presence_hours = base::mean(`Vessel Presence Hours`, na.rm = TRUE),
+    mean_vessel_ids     = base::mean(`Vessel IDs`, na.rm = TRUE),
+    .groups = "drop"
+  )
 
-monthly_transits <- readr::read_csv(
-  list.files("target_area_monthly", full.names = TRUE, pattern = "_target_processed.csv$")
-) |> 
-  dplyr::arrange(year, month)
+q90_thr_all <- stats::quantile(lane_grid_all$mean_vessel_ids, probs = 0.90, na.rm = TRUE)
+
+lane_grid_all <- lane_grid_all |>
+  dplyr::mutate(lane_q90 = mean_vessel_ids >= q90_thr_all)
+
+lane_cells_all <- lane_grid_all |>
+  dplyr::filter(lane_q90) |>
+  dplyr::select(Lat, Lon)
 
 
-monthly_transits
+ggplot2::ggplot(lane_grid_all, ggplot2::aes(x = Lon, y = Lat)) +
+  ggplot2::geom_tile(
+    ggplot2::aes(fill = lane_q90),
+    width = cell_res, height = cell_res
+  ) +
+  ggplot2::coord_equal(expand = FALSE) +
+  ggplot2::labs(
+    title = "Binary mask: top 10% traffic cells (Q90)",
+    fill  = "Lane cell"
+  ) +
+  ggplot2::theme_bw()
 
-# Step 1: Compute the mean vessel count for each month across all years
-monthly_means <- monthly_transits |>
+
+lane_monthly_cellstats <- ais_p_all |>
+  dplyr::filter(
+    Lat >= study_lat_range[1], Lat <= study_lat_range[2],
+    Lon >= study_lon_range[1], Lon <= study_lon_range[2]
+  ) |>
+  dplyr::inner_join(lane_cells_all, by = c("Lat", "Lon")) |>
   dplyr::group_by(year, month) |>
   dplyr::summarise(
-    mean_vessels = mean(unique_vessels, na.rm = TRUE),
+    mean_vessels_per_cell = base::mean(`Vessel IDs`, na.rm = TRUE),
+    sd_vessels_per_cell   = stats::sd(`Vessel IDs`, na.rm = TRUE),
+    mean_presence_hours   = base::mean(`Vessel Presence Hours`, na.rm = TRUE),
+    sd_presence_hours     = stats::sd(`Vessel Presence Hours`, na.rm = TRUE),
+    n_cells               = dplyr::n(),
     .groups = "drop"
   )
 
 
-monthly_transits |>
-  dplyr::mutate(month = factor(month)) |>
-  rstatix::kruskal_test(unique_vessels ~ month) |>
-  rstatix::add_significance()
+lane_monthly_cellstats
 
-monthly_transits |>
-  dplyr::mutate(month = factor(month)) |>
+
+lane_monthly_cellstats |>
+  rstatix::get_summary_stats(mean_vessels_per_cell, type = "common")
+
+
+lane_climatology <- lane_monthly_cellstats |>
+  dplyr::group_by(month) |>
+  rstatix::get_summary_stats(mean_vessels_per_cell, type = "common")
+
+lane_climatology
+
+
+
+# significant differences acrooss months?
+lane_monthly_cellstats |>
+  # dplyr::filter(month %in% c(10, 11, 12, 1, 2, 3)) |>
+  dplyr::mutate(month = base::factor(month, levels = 1:12)) |>
+  rstatix::kruskal_test(mean_vessels_per_cell ~ month)
+
+
+lane_monthly_cellstats |>
+  dplyr::mutate(month = base::factor(month, levels = 1:12)) |>
   rstatix::pairwise_wilcox_test(
-    formula = unique_vessels ~ month,
-    p.adjust.method = "BH"  
-  ) |> 
-  print(n=100)
+    formula = mean_vessels_per_cell ~ month,
+    p.adjust.method = "BH"
+  )
 
-
-monthly_transits |>
-  dplyr::filter(month %in% c(10, 11, 12, 1, 2, 3)) |> 
-  dplyr::mutate(month = factor(month)) |>
-  rstatix::kruskal_test(unique_vessels ~ month) |>
-  rstatix::add_significance()
-
-monthly_transits |>
-  dplyr::filter(month %in% c(10, 11, 12, 1, 2, 3)) |> 
-  dplyr::mutate(month = factor(month)) |>
+lane_monthly_cellstats |>
+  dplyr::filter(month %in% c(10, 11, 12, 1, 2, 3)) |>
+  dplyr::mutate(month = factor(month, levels = c(10, 11, 12, 1, 2, 3))) |>
   rstatix::pairwise_wilcox_test(
-    formula = unique_vessels ~ month,
-    p.adjust.method = "BH" 
+    formula = mean_vessels_per_cell ~ month,
+    p.adjust.method = "BH"
   )
 
 
-monthly_transits |>
-  dplyr::filter(month %in% c(10, 11, 12, 1, 2, 3)) |> 
+
+
+## Wreck Bay region
+
+# Far North
+roi_lat_range <- c(-17, -11)
+roi_lon_range <- c(142.7, 146.5)
+
+# PNG
+roi_lat_range <- c(-13.05, -2.95)
+roi_lon_range <- c(143.5, 156.5)
+
+
+
+
+lane_cells_roi <- lane_cells_all |>
+  dplyr::filter(
+    Lat >= roi_lat_range[1], Lat <= roi_lat_range[2],
+    Lon >= roi_lon_range[1], Lon <= roi_lon_range[2]
+  )
+
+
+ggplot2::ggplot(
+  lane_grid_all |>
+    dplyr::filter(
+      Lat >= roi_lat_range[1], Lat <= roi_lat_range[2],
+      Lon >= roi_lon_range[1], Lon <= roi_lon_range[2]
+    ),
+  ggplot2::aes(x = Lon, y = Lat)
+) +
+  ggplot2::geom_tile(
+    ggplot2::aes(fill = lane_q90),
+    width = cell_res, height = cell_res
+  ) +
+  ggplot2::coord_equal(expand = FALSE) +
+  ggplot2::labs(
+    title = "Binary mask: top 10% traffic cells (Q90) — ROI",
+    fill  = "Lane cell"
+  ) +
+  ggplot2::theme_bw()
+
+
+
+
+
+lane_monthly_cellstats <- ais_p_all |>
+  dplyr::filter(
+    Lat >= roi_lat_range[1], Lat <= roi_lat_range[2],
+    Lon >= roi_lon_range[1], Lon <= roi_lon_range[2]
+  ) |>
+  dplyr::inner_join(lane_cells_roi, by = c("Lat", "Lon")) |>
+  dplyr::group_by(year, month) |>
+  dplyr::summarise(
+    mean_vessels_per_cell = base::mean(`Vessel IDs`, na.rm = TRUE),
+    sd_vessels_per_cell   = stats::sd(`Vessel IDs`, na.rm = TRUE),
+    mean_presence_hours   = base::mean(`Vessel Presence Hours`, na.rm = TRUE),
+    sd_presence_hours     = stats::sd(`Vessel Presence Hours`, na.rm = TRUE),
+    n_cells               = dplyr::n(),
+    .groups = "drop"
+  )
+
+
+lane_monthly_cellstats
+
+
+lane_monthly_cellstats |>
+  rstatix::get_summary_stats(mean_vessels_per_cell, type = "common")
+
+
+lane_climatology <- lane_monthly_cellstats |>
   dplyr::group_by(month) |>
-  rstatix::get_summary_stats(unique_vessels, type = "common")
+  rstatix::get_summary_stats(mean_vessels_per_cell, type = "common")
 
-monthly_transits |>
-  dplyr::filter(month %in% c(10, 11, 12, 1, 2, 3)) |> 
-  rstatix::get_summary_stats(unique_vessels, type = "common")
-
-monthly_transits |>
-  dplyr::filter(month %in% c(11, 12)) |> 
-  dplyr::group_by(month) |>
-  rstatix::get_summary_stats(unique_vessels, type = "common")
-
-monthly_transits |>
-  rstatix::get_summary_stats(unique_vessels, type = "common")
+lane_climatology
 
 
 
 
 
 
+lane_monthly_cellstats |>
+  # dplyr::filter(month %in% c(10, 11, 12, 1, 2, 3)) |>
+  dplyr::mutate(month = base::factor(month, levels = 1:12)) |>
+  rstatix::kruskal_test(mean_vessels_per_cell ~ month)
 
 
+lane_monthly_cellstats |>
+  dplyr::mutate(month = base::factor(month, levels = 1:12)) |>
+  rstatix::pairwise_wilcox_test(
+    formula = mean_vessels_per_cell ~ month,
+    p.adjust.method = "BH"
+  )
+
+lane_monthly_cellstats |>
+  dplyr::filter(month %in% c(10, 11, 12, 1, 2, 3)) |>
+  dplyr::mutate(month = factor(month, levels = c(10, 11, 12, 1, 2, 3))) |>
+  rstatix::pairwise_wilcox_test(
+    formula = mean_vessels_per_cell ~ month,
+    p.adjust.method = "BH"
+  )
+
+
+
+
+
+# obverall stats on max values as well
+
+ais_cell_mean <- ais_p_all |>
+  dplyr::group_by(Lat, Lon) |>
+  dplyr::summarise(
+    mean_vessels = base::mean(`Vessel IDs`, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Range / max of the cell means (this should match ships_gfw max)
+ais_cell_mean |>
+  dplyr::summarise(
+    min_mean = min(mean_vessels, na.rm = TRUE),
+    max_mean = max(mean_vessels, na.rm = TRUE),
+    mean_mean = mean(mean_vessels, na.rm = TRUE),
+    sd_mean = sd(mean_vessels, na.rm = TRUE)
+  )
+
+# Compare directly to the raster stats
+terra::global(ships_gfw, "range", na.rm = TRUE)
+
+
+
+
+# 3) (Optional) This is NOT what ships_gfw is, but useful to understand hotspots:
+#    maximum vessels observed in each cell in any month
+ais_cell_max <- ais_p_all |>
+  dplyr::group_by(Lat, Lon) |>
+  dplyr::summarise(
+    max_vessels_any_month = max(`Vessel IDs`, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+
+ais_cell_max
+
+ais_cell_max |>
+  dplyr::summarise(
+    max_of_cell_max = max(max_vessels_any_month, na.rm = TRUE)
+  )
+
+
+max_hits <- ais_p_all |>
+  dplyr::filter(!is.na(`Vessel IDs`)) |>
+  dplyr::slice_max(order_by = `Vessel IDs`, n = 1, with_ties = TRUE) |>
+  dplyr::arrange(`Time Range`, dplyr::desc(`Vessel IDs`))
+
+max_hits
+
+
+top_cell <- ais_p_all |>
+  dplyr::group_by(Lat, Lon) |>
+  dplyr::summarise(mean_vessels = base::mean(`Vessel IDs`, na.rm = TRUE), .groups = "drop") |>
+  dplyr::slice_max(mean_vessels, n = 1, with_ties = TRUE) |>
+  dplyr::select(Lat, Lon)
+
+# 2) Within that cell, find the month-year with the maximum Vessel IDs
+top_cell_peak_month <- ais_p_all |>
+  dplyr::semi_join(top_cell, by = c("Lat", "Lon")) |>
+  dplyr::slice_max(`Vessel IDs`, n = 10, with_ties = TRUE) |>
+  dplyr::arrange(`Time Range`)
+
+top_cell_peak_month
 
 
 
